@@ -5,9 +5,7 @@ import fs2._
 
 object StreamTests extends IOApp.Simple {
 
-  def fromUnterminatedQueue[A](q: QueueSource[IO, A]): Stream[IO, A] = {
-    Stream.evalSeq(q.tryTakeN(None)) ++ fromUnterminatedQueue(q)
-  }
+  def fromUnterminatedQueue[A](q: QueueSource[IO, A]): Stream[IO, A] = Stream.evalSeq(q.tryTakeN(None)).repeat
 
   def run: IO[Unit] = {
 
@@ -23,7 +21,7 @@ object StreamTests extends IOApp.Simple {
 
       val consumer2 = fromUnterminatedQueue(q).take(n).compile.drain
 
-      (producer, consumer).parTupled
+      (producer, consumer2).parTupled
     }.void
 
     val go = List.fill(100)(x)
