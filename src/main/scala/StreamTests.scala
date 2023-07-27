@@ -1,11 +1,21 @@
 import cats.effect.std.{Queue, QueueSource}
 import cats.effect.{IO, IOApp}
-import cats.syntax.all._
-import fs2._
+import cats.syntax.all.*
+import fs2.*
 
 object StreamTests extends IOApp.Simple {
 
-  def fromUnterminatedQueue[A](q: QueueSource[IO, A]): Stream[IO, A] = Stream.evalSeq(q.tryTakeN(None)).repeat
+  def fromUnterminatedQueue[A](q: QueueSource[IO, A]): Stream[IO, A] = {
+    /** First, try non-blocking batch dequeue.
+     *   Only if the result is an empty list, semantically block and get exactly one element. 
+     */
+    val asf = q.tryTakeN(None).flatMap {
+      case Nil => q.take.map(_ :: Nil)
+      case as => IO.pure(as)
+    }
+
+    Stream.evalSeq(asf).repeat
+  }
 
   def run: IO[Unit] = {
 
