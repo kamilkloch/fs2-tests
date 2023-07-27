@@ -34,7 +34,8 @@ Alternative implementation of `Stream.fromQueueUnterminated`, replacing
 
 with 
 ```scala
-def fromUnterminatedQueue[A](q: QueueSource[IO, A]): Stream[IO, A] = Stream.evalSeq(q.tryTakeN(None)).repeat
+def fromUnterminatedQueue[A](q: QueueSource[IO, A]): Stream[IO, A] = 
+  Stream.evalSeq(q.tryTakeN(None)).repeat
 ```
 
 ## Test setup
